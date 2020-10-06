@@ -1,55 +1,81 @@
 import java.util.ArrayList;
 
 public class BinaryHeapPriorityQueue<T> {
-
     int currSize = 0;
+    ArrayList<Pair<T>> arr;
     /**
      * @method BinaryHeapPriorityQueue
      * @description constructor method, creates and populates the data structure with a parametric
      *              collection of n items
      * @returns null
     */
-    ArrayList<Pair<T>> arr;
     public BinaryHeapPriorityQueue() {
         arr = new ArrayList(0);
     }
+
+    /**
+     * @method BinaryHeapPriorityQueue
+     * @param inputs
+     * @returns constructor
+     * @description Overloaded constructor which takes a list of inputs and inserts them into
+     *              the tree.
+     */
     public BinaryHeapPriorityQueue(T[] inputs) {
         for(T t : inputs) {
             this.Insert(t, 0);
         }
     }
+
+    /**
+     * @method parent
+     * @param i
+     * @returns int
+     * @description delivers the index of the parent of the current index
+     */
     private int parent(int i) { return (int)Math.floor(i/2); }
+
+    /**
+     * @method left
+     * @param i
+     * @returns int
+     * @description delivers the index of the left child of the current index
+     */
     private int left(int i) { return 2*i; }
+
+    /**
+     * @method right
+     * @param i
+     * @returns int
+     * @description delivers the index of the right child of the current index
+     */
     private int right(int i) { return (2*i + 1); }
-    public int ExtractMax() {
-        if(arr.size() < 1) throw new Error("heap underflow!");
-        Pair<T> max = arr.get(0);
-        arr.set(0, arr.remove(currSize - 1));
-        currSize -= 1;
-        maxHeapify(this.arr, 0);
-        return max.getPriority();
-    }
+
+    /**
+     * @method getSize
+     * @returns int
+     * @description returns the size of the heap
+     */
+    public int getSize() { return currSize; }
+
+    /**
+     * @method Insert
+     * @param value
+     * @param priority
+     * @returns boolean
+     * @description Inserts the given value T with priority into the array. Calls heapify
+     *              if insertion is successful.
+     */
     public boolean Insert(T value, int priority) {
         //System.out.println(value + "  | " + priority);
         Pair<T> toAdd = new Pair(value, priority);
         if(arr.add(toAdd))
         {
             currSize++;
-            return true;
+            return this.heapify(true);
         }
         return false;
     }
-    public boolean IncreaseKey(T value, int i, int priority) {
-        if(priority < arr.get(i).getPriority())
-            throw new Error("new key is smaller than current key");
-        arr.get(i).setPriority(priority);
-        while(i > 1 && (arr.get(parent(i)).getPriority() < arr.get(i).getPriority())) {
-            Pair<T> temp = arr.get(i);
-            arr.set(i, arr.get(parent(i)));
-            arr.set(parent(i), temp);
-        }
-        return false;
-    }
+
     /**
      * @method heapify
      * @param maxMin defines whether the heap is to be a max (true) or min heap (false)
@@ -71,9 +97,8 @@ public class BinaryHeapPriorityQueue<T> {
         int largest = i;
         if(l < A.size() && A.get(l).getPriority() > A.get(i).getPriority()) largest = l;
         else largest = i;
-        if(r <= A.size() && A.get(r).getPriority() > A.get(largest).getPriority()) largest = r;
+        if(r < A.size() && A.get(r).getPriority() > A.get(largest).getPriority()) largest = r;
         if(largest != i) {
-            //System.out.println("Swapping " + A.get(largest).getPriority() + " and " + A.get(i).getPriority() + " and calling heapify on " + largest);
             Pair<T> temp = A.get(i);
             A.set(i, A.get(largest));
             A.set(largest, temp);
@@ -90,7 +115,44 @@ public class BinaryHeapPriorityQueue<T> {
         for(int i = (A.size() / 2); i >= 0; i--) {
             maxHeapify(A, i);
         }
-        System.out.println("done.");
+        return true;
+    }
+
+    /**
+     * @method EctractMax
+     * @returns int
+     * @description Removes the root node from the tree and replaces it with the
+     *              last one within the array. The tree then rebuilds it's heap
+     *              property, then returns the max extracted.
+     */
+    public int ExtractMax() {
+        if(arr.size() < 1) throw new Error("heap underflow!");
+        Pair<T> max = arr.get(0);
+        arr.set(0, arr.remove(currSize - 1));
+        currSize -= 1;
+        maxHeapify(this.arr, 0);
+        return max.getPriority();
+    }
+
+    /**
+     * @method IncreaseKey
+     * @param value
+     * @param i
+     * @param priority
+     * @return boolean
+     * @description Increments the priority of value at the given index i, then loops, swapping
+     *              child with parent so long as the newly ranked child is higher than its parent.
+     *              Returns true to indicate success.
+     */
+    public boolean IncreaseKey(int i, int priority) {
+        if(priority < arr.get(i).getPriority())
+            System.out.println("new key is smaller than current key");
+        arr.get(i).setPriority(priority);
+        while(i > 1 && (arr.get(parent(i)).getPriority() < arr.get(i).getPriority())) {
+            Pair<T> temp = arr.get(i);
+            arr.set(i, arr.get(parent(i)));
+            arr.set(parent(i), temp);
+        }
         return true;
     }
 
@@ -121,7 +183,12 @@ public class BinaryHeapPriorityQueue<T> {
             }
         }
     }
-    public int getSize() { return currSize; }
+
+
+    /**
+     * @class Pair<T>
+     * @description A private class to store pairs of each entry's value, and their priority.
+     */
     private class Pair<T> {
         private T key = null;
         private int priority;
