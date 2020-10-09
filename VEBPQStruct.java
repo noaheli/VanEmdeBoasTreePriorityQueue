@@ -2,9 +2,10 @@ import java.util.ArrayList;
 
 public class VEBPQStruct<T>  {
     int universe;
+    double truniverse = 2;
     int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
     T minContainer = null, maxContainer = null;
-    ArrayList<VEBPQStruct<T>> clusters;
+    VEBPQStruct<T>[] clusters;
     VEBPQStruct<T> summary = null;
 
     /**
@@ -14,6 +15,7 @@ public class VEBPQStruct<T>  {
      *              Unlikely to be used.
      */
     public VEBPQStruct() {
+
         universe = 2;
     }
 
@@ -26,21 +28,20 @@ public class VEBPQStruct<T>  {
      *              summary.
      */
     public VEBPQStruct(int universe) {
+        double size = 2;
         if(universe != 2) {
-            double size;
-            for(int i = 0; i < 6; i++)
+
+            for(int i = 1; i < 6; i++)
             {
                 size = Math.pow(2, Math.pow(2, i));
                 if(size >= universe) {
                     universe = (int)size;
+                    truniverse = size;
                     break;
                 }
             }
-            clusters = new ArrayList<VEBPQStruct<T>>((int)Math.sqrt(universe));
-            for(int i = 0; i < Math.sqrt(universe); i++) {
-                clusters.add(new VEBPQStruct((int)(Math.sqrt(universe))));
-            }
-            summary = new VEBPQStruct((int)(Math.sqrt(universe)));
+            clusters = new VEBPQStruct[((int)Math.sqrt(size))];
+            summary = new VEBPQStruct((int)(Math.sqrt(size)));
         }
         this.universe = universe;
     }
@@ -80,7 +81,7 @@ public class VEBPQStruct<T>  {
      * @description Returns the index of which cluster the current variable (passed by x) would be located within.
      */
     private int high(int x) {
-        return (int)Math.floor(x / (int)(((Math.pow(2, Math.floor((Math.log(universe) / Math.log(2)) / 2))))));
+        return (int)Math.floor(x / (int)(((Math.pow(2, Math.floor((Math.log(truniverse) / Math.log(2)) / 2))))));
     }
     /**
      * @method low
@@ -89,7 +90,7 @@ public class VEBPQStruct<T>  {
      * @description Returns the index to which x belongs to in the deeper clusters.
      */
     private int low(int x) {
-        return (x % (int)(((Math.pow(2, Math.floor((Math.log(universe) / Math.log(2)) / 2))))));
+        return (x % (int)(((Math.pow(2, Math.floor((Math.log(truniverse) / Math.log(2)) / 2))))));
     }
     /**
      * @method index
@@ -100,7 +101,7 @@ public class VEBPQStruct<T>  {
      *          based on the parameters given.
      */
     private int index(int x, int y) {
-        return ((x * (int)Math.floor((Math.pow(2, (Math.log(universe) / Math.log(2)) / 2))) + y));
+        return ((x * (int)Math.floor((Math.pow(2, (Math.log(truniverse) / Math.log(2)) / 2))) + y));
     }
 
     /**
@@ -113,7 +114,7 @@ public class VEBPQStruct<T>  {
     public boolean treeMember(int x) {
         if(x == min || x == max) return true;
         else if (universe == 2) return false;
-        else return clusters.get(high(x)).treeMember(low(x));
+        else return clusters[high(x)].treeMember(low(x));
     }
 
     /**
@@ -150,11 +151,14 @@ public class VEBPQStruct<T>  {
                 minContainer = val;
             }
             if (universe > 2) {
-                if (clusters.get(high(x)).treeMin() == Integer.MAX_VALUE) {
+                int h = high(x);
+                if(clusters[h] == null) clusters[h] = new VEBPQStruct<>(high(universe));
+                if(summary == null) summary = new VEBPQStruct<>(high(universe));
+                if (clusters[h].treeMin() == Integer.MAX_VALUE) {
                     summary.insert(val, high(x));
-                    clusters.get(high(x)).emptyTreeInsert(val, low(x));
-                    clusters.get(high(x)).insert(val, low(x));
-                } else clusters.get(high(x)).insert(val, low(x));
+                    clusters[high(x)].emptyTreeInsert(val, low(x));
+                    clusters[high(x)].insert(val, low(x));
+                } else clusters[high(x)].insert(val, low(x));
             }
             if (x > max) {
                 max = x;
@@ -170,20 +174,25 @@ public class VEBPQStruct<T>  {
      * @description Deletes the value at the given index (x) from every iteration of the
      *              Van Emde Boas Structure.
      */
-    public void delete(int x) {
+
+    public T delete(int x) {
+        T ret = null;
         if(min == max) {
+            ret = minContainer;
             min = Integer.MAX_VALUE;
             max = Integer.MIN_VALUE;
             if(universe != 2) {
-                clusters.get(high(x)).delete(low(x));
+                clusters[high(x)].delete(low(x));
             }
         }
         else if(universe == 2) {
             if(x == 0) {
+                ret = minContainer;
                 min = 1;
                 minContainer = maxContainer;
             }
             else {
+                ret = maxContainer;
                 min = 0;
             }
             max = min;
@@ -192,29 +201,35 @@ public class VEBPQStruct<T>  {
         else {
             if(x == min) {
                 int cluster = summary.treeMin();
-                x = index(cluster, clusters.get(cluster).treeMin());
-                T minVal = clusters.get(cluster).treeMinVal();
+                x = index(cluster, clusters[cluster].treeMin());
+                T minVal = clusters[cluster].treeMinVal();
                 min = x;
+                ret = minContainer;
                 minContainer = minVal;
             }
-            clusters.get(high(x)).delete(low(x));
-            if(clusters.get(high(x)).treeMin() == Integer.MAX_VALUE) {
+            clusters[high(x)].delete(low(x));
+            if(clusters[high(x)].treeMin() == Integer.MAX_VALUE) {
                 summary.delete(high(x));
                 if(x == max) {
                     int sumMax = summary.treeMax();
+                    ret = maxContainer;
                     if(sumMax == Integer.MIN_VALUE) {
                         max = min;
                         maxContainer = minContainer;
                     }
                     else {
-                        max = index(sumMax, clusters.get(sumMax).treeMax());
+                        max = index(sumMax, clusters[sumMax].treeMax());
+                        maxContainer = clusters[sumMax].treeMaxVal();
                     }
                 }
             }
             else if(x == max) {
-                max = index(high(x), clusters.get(high(x)).treeMax());
+                ret = maxContainer;
+                max = index(high(x), clusters[high(x)].treeMax());
+                maxContainer = clusters[high(x)].treeMaxVal();
             }
         }
+        return ret;
     }
 
     /**
@@ -230,16 +245,16 @@ public class VEBPQStruct<T>  {
         }
         else if(min != Integer.MAX_VALUE && x < min) return min;
         else {
-            int maxLow = clusters.get(high(x)).treeMax();
+            int maxLow = clusters[high(x)].treeMax();
             if(maxLow != Integer.MIN_VALUE && low(x) < maxLow) {
-                int offset = clusters.get(high(x)).treeSuccessor(low(x));
+                int offset = clusters[high(x)].treeSuccessor(low(x));
                 return index(high(x), offset);
             }
             else {
                 int succCluster = summary.treeSuccessor(high(x));
                 if(succCluster == -1) return -1;
                 else {
-                    int offset = clusters.get(succCluster).treeMin();
+                    int offset = clusters[succCluster].treeMin();
                     return index(succCluster, offset);
                 }
             }
@@ -259,9 +274,9 @@ public class VEBPQStruct<T>  {
         }
         else if(max == Integer.MIN_VALUE && x > max) return max;
         else {
-            int minLow = clusters.get(high(x)).treeMin();
+            int minLow = clusters[high(x)].treeMin();
             if(minLow == -1 && low(x) > minLow) {
-                int offset = clusters.get(high(x)).treePredecessor(low(x));
+                int offset = clusters[high(x)].treePredecessor(low(x));
                 return index(high(x), offset);
             }
             else {
@@ -271,7 +286,7 @@ public class VEBPQStruct<T>  {
                     else return -1;
                 }
                 else {
-                    int offset = clusters.get(predCluster).treeMax();
+                    int offset = clusters[predCluster].treeMax();
                     return index(predCluster, offset);
                 }
             }
@@ -300,8 +315,14 @@ public class VEBPQStruct<T>  {
      * @returns boolean
      * @description Actually not quite sure what this one does haha
      */
-    public boolean IncreaseKey(int i, int priority) {
-
+    public boolean IncreaseKey(int i) {
+        if(this.treeMember(i)) {
+            if(this.max != universe - 1) {
+                T val = delete(i);
+                this.insert(val, max + 1);
+                return true;
+            }
+        }
         return false;
     }
 
@@ -313,8 +334,8 @@ public class VEBPQStruct<T>  {
     public void print(int offset) {
         int off = (int)Math.sqrt(universe);
         if(universe != 2) {
-            for(int i = 0; i < clusters.size(); i++) {
-                clusters.get(i).print(offset + (off * i));
+            for(int i = 0; i < clusters.length; i++) {
+                clusters[i].print(offset + (off * i));
             }
         }
         else

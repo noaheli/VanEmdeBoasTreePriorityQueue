@@ -144,10 +144,8 @@ public class BinaryHeapPriorityQueue<T> {
      *              child with parent so long as the newly ranked child is higher than its parent.
      *              Returns true to indicate success.
      */
-    public boolean IncreaseKey(int i, int priority) {
-        if(priority < arr.get(i).getPriority())
-            System.out.println("new key is smaller than current key");
-        arr.get(i).setPriority(priority);
+    public boolean IncreaseKey(int i) {
+        arr.get(i).setPriority(this.arr.get(0).getPriority() + 1);
         while(i > 1 && (arr.get(parent(i)).getPriority() < arr.get(i).getPriority())) {
             Pair<T> temp = arr.get(i);
             arr.set(i, arr.get(parent(i)));
