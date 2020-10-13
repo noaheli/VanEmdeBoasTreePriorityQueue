@@ -3,7 +3,7 @@ import java.util.ArrayList;
 public class Runner {
     public static void main(String[] args)
     {
-        int n = 1000000;
+        int n = 100;
         while(n < 10000000) {
             System.out.println("\nStarting cycle with n = "+ n);
             ArrayList<Integer> priorities = new ArrayList<>(n);
@@ -12,20 +12,19 @@ public class Runner {
             }
             long startTime = System.nanoTime();
             BinaryHeapPriorityQueue<Integer> tester = new BinaryHeapPriorityQueue<>();
-            //VEBPQStruct<Integer> tester2 = new VEBPQStruct<>(n);
+            VEBPQStruct<Integer> tester2 = new VEBPQStruct<>(n);
             for(int i = 0; i < n; i++)
             {
                 Integer value = ((int)(Math.random() * n));
                 int priority = priorities.remove((int)((Math.random() * priorities.size())));
-                System.out.println(i);
-                tester.Insert(value, priority);
-                //tester2.insert(value, priority);
+                //tester.Insert(value, priority);
+                tester2.insert(value, priority);
             }
 
             long stopTime = System.nanoTime();
             System.out.println("Build time for n size " + n + " is " + (stopTime - startTime));
 
-
+/**
              startTime = System.nanoTime();
              for(int i = 0; i < (int)((Math.random() * n) + n); i++) {
                 int operation = (int)(Math.random() * 3);
@@ -39,7 +38,7 @@ public class Runner {
                         break;
                     }
                     default: {
-                        int rand = (int)(Math.random() * tester.getSize());
+                        int rand = (int)(Math.random() * tester.size());
                         tester.IncreaseKey(rand);
                         break;
                     }
@@ -47,8 +46,7 @@ public class Runner {
              }
              stopTime = System.nanoTime();
              System.out.println("Runtime for " + n + " operations on the Binary Heap is: " + (stopTime - startTime));
-
-            /**
+*/
             startTime = System.nanoTime();
             for(int i = 0; i < (int)((Math.random() * n) + n); i++) {
                 int operation = (int)(Math.random() * 3);
@@ -63,14 +61,14 @@ public class Runner {
                     }
                     default: {
                         int rand = (int)(Math.random() * n);
-                        tester2.IncreaseKey();
+                        tester2.IncreaseKey(rand);
                         break;
                     }
                 }
             }
             stopTime = System.nanoTime();
             System.out.println("Runtime for " + n + " operations on the Van Emde Boas Tree is: " + (stopTime - startTime));
-             */
+
 
             n *= 10;
         }
