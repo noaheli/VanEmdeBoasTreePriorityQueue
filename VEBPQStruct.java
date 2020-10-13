@@ -114,7 +114,7 @@ public class VEBPQStruct<T>  {
     public boolean treeMember(int x) {
         if(x == min || x == max) return true;
         else if (universe == 2) return false;
-        else return clusters[high(x)].treeMember(low(x));
+        else return (clusters[high(x)] == null) ? false : clusters[high(x)].treeMember(low(x));
     }
 
     /**
@@ -313,11 +313,13 @@ public class VEBPQStruct<T>  {
      * @param i
      * @param priority
      * @returns boolean
-     * @description Actually not quite sure what this one does haha
+     * @description Removes the value at the indicated index and replaces it into the position
+                    of one higher priority than the current max.
      */
     public boolean IncreaseKey(int i) {
         if(this.treeMember(i)) {
             if(this.max != universe - 1) {
+                //System.out.println(i);
                 T val = delete(i);
                 this.insert(val, max + 1);
                 return true;
@@ -326,23 +328,4 @@ public class VEBPQStruct<T>  {
         return false;
     }
 
-    /** @method print
-     *  @params none
-     *  @returns void
-     *  @description prints the tree for viewing after manipulations, to which it prints in a very lackluster form.
-     */
-    public void print(int offset) {
-        int off = (int)Math.sqrt(universe);
-        if(universe != 2) {
-            for(int i = 0; i < clusters.length; i++) {
-                clusters[i].print(offset + (off * i));
-            }
-        }
-        else
-        {
-            if(min == Integer.MAX_VALUE) System.out.print(" -1 | -1 ");
-            else System.out.print(" " + (offset + min) + " | " + (offset + max) + " ");
-        }
-    }
 }
-

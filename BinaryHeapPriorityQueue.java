@@ -13,6 +13,8 @@ public class BinaryHeapPriorityQueue<T> {
         arr = new ArrayList(0);
     }
 
+    public BinaryHeapPriorityQueue(int n) { arr = new ArrayList(n); }
+
     /**
      * @method BinaryHeapPriorityQueue
      * @param inputs
@@ -21,6 +23,7 @@ public class BinaryHeapPriorityQueue<T> {
      *              the tree.
      */
     public BinaryHeapPriorityQueue(T[] inputs) {
+      arr = new ArrayList<Pair<T>>(inputs.length);
         for(T t : inputs) {
             this.Insert(t, 0);
         }
@@ -55,8 +58,9 @@ public class BinaryHeapPriorityQueue<T> {
      * @returns int
      * @description returns the size of the heap
      */
-    public int getSize() { return currSize; }
+    public int size() { return currSize; }
 
+    public int height() { return (int)(Math.floor(Math.log(arr.size())/Math.log(2))); }
     /**
      * @method Insert
      * @param value
@@ -71,7 +75,7 @@ public class BinaryHeapPriorityQueue<T> {
         if(arr.add(toAdd))
         {
             currSize++;
-            return this.heapify(true);
+            heapTraverse(true, arr.size() - 1);
         }
         return false;
     }
@@ -81,8 +85,43 @@ public class BinaryHeapPriorityQueue<T> {
      * @param maxMin defines whether the heap is to be a max (true) or min heap (false)
      * @returns the return parameter indicating success on calling buildMaxHeap.
      */
-    public boolean heapify(boolean maxMin) {
+    private boolean heapify(boolean maxMin) {
         return (maxMin) ? this.buildMaxHeap(this.arr) : false;
+    }
+
+    /**
+     *  @method heapTraverse
+     *  @param boolean direction indicates whether the method will traverse the heap upwards
+     *                 or downwards.
+     *  @param i integer to indicate which index within the array we will be traversing from
+     *  @return void
+     *  @description Traverses the heap from the indicated index and swaps with either parent or
+     *               the greater of the two children, depending on the direction.
+     */
+    private void heapTraverse(boolean direction, int i) {
+        if(direction) {
+            while(i >= 1 && (arr.get(parent(i)).getPriority() < arr.get(i).getPriority())) {
+                Pair<T> temp = arr.get(i);
+                arr.set(i, arr.get(parent(i)));
+                arr.set(parent(i), temp);
+                i = parent(i);
+            }
+        }
+        else {
+            while( (i < arr.size())
+                   && (left(i) < arr.size())
+                   && (right(i) < arr.size())
+                 && (arr.get(left(i)).getPriority() > arr.get(i).getPriority()
+                      || arr.get(right(i)).getPriority() > arr.get(i).getPriority())
+                ) {
+
+                Pair<T> temp = arr.get(i);
+                boolean strongerChild = (arr.get(left(i)).getPriority() > arr.get(right(i)).getPriority());
+                arr.set(i, ((strongerChild) ? arr.get(left(i)) : arr.get(right(i))));
+                arr.set(((strongerChild) ? left(i) : right(i)), temp);
+                i = (strongerChild) ? left(i) : right(i);
+            }
+        }
     }
     /**
      * @method maxHeapify
@@ -94,7 +133,7 @@ public class BinaryHeapPriorityQueue<T> {
     private void maxHeapify(ArrayList<Pair<T>> A, int i) {
         int l = left(i);
         int r = right(i);
-        int largest = i;
+        int largest;
         if(l < A.size() && A.get(l).getPriority() > A.get(i).getPriority()) largest = l;
         else largest = i;
         if(r < A.size() && A.get(r).getPriority() > A.get(largest).getPriority()) largest = r;
@@ -110,6 +149,8 @@ public class BinaryHeapPriorityQueue<T> {
      * @method buildMaxHeap
      * @param A
      * @return success of building the heap
+     * @description Runs the Heapify function on the top half
+     *              of the array as to generate the heap structure.
      */
     private boolean buildMaxHeap(ArrayList<Pair<T>> A) {
         for(int i = (A.size() / 2); i >= 0; i--) {
@@ -119,7 +160,7 @@ public class BinaryHeapPriorityQueue<T> {
     }
 
     /**
-     * @method EctractMax
+     * @method ExtractMax
      * @returns int
      * @description Removes the root node from the tree and replaces it with the
      *              last one within the array. The tree then rebuilds it's heap
@@ -146,11 +187,7 @@ public class BinaryHeapPriorityQueue<T> {
      */
     public boolean IncreaseKey(int i) {
         arr.get(i).setPriority(this.arr.get(0).getPriority() + 1);
-        while(i > 1 && (arr.get(parent(i)).getPriority() < arr.get(i).getPriority())) {
-            Pair<T> temp = arr.get(i);
-            arr.set(i, arr.get(parent(i)));
-            arr.set(parent(i), temp);
-        }
+        heapTraverse(true, i);
         return true;
     }
 
